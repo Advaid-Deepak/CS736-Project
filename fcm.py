@@ -33,18 +33,19 @@ def update_memberships(neighbourhood, pixels, centers, segments, q):
      
     return memberships
 
-data_dict = mat73.loadmat('assignmentsegmentbrain.mat')
+data_dict = mat73.loadmat('assignmentSegmentBrain.mat')
 
-image = data_dict["imagedata"]
-image = cv2.cvtcolor(image, cv2.color_rgb2gray)
+image = data_dict["imageData"]
+image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 image = (image * 256).astype(np.uint8)
-imagemask = data_dict["imagemask"]
+imagemask = data_dict["imageMask"]
 
 k = 4 
 q = 1.6
 
 pixels = np.float32(image.reshape((-1,1)))
-criteria = (cv2.term_criteria_eps + cv2.term_criteria_max_iter, 100, 0.85)
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
 retval, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
 uInit = np.zeros((pixels.shape[0],centers.shape[0]))
