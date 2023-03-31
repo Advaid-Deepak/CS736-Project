@@ -1,9 +1,17 @@
 import mat73
 from matplotlib import pyplot as plt
 import numpy as np
-from class_means import class_means
-from cost import J_fun
 import cv2
+
+def J_fun(u,y,c,q):
+    return np.sum(np.power(u,q).T@np.square(y-c.T))
+
+def class_means(memberships,pixels,q) :
+
+    powered_Membership = memberships ** q
+    c = powered_Membership.T@pixels
+    c = c.T/np.sum(powered_Membership,axis = 0)
+    return c.T
 
 def update_memberships(pixels, centers, segments, q):
     """ Return the new memberships assuming the centers
@@ -33,13 +41,17 @@ def update_memberships(pixels, centers, segments, q):
      
     return memberships
 
-data_dict = mat73.loadmat('assignmentSegmentBrain.mat')
+# data_dict = mat73.loadmat('assignmentSegmentBrain.mat')
 
-image = data_dict["imageData"]
-image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+# image = data_dict["imageData"]
+# image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+# image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+# image = (image * 256).astype(np.uint8)
+# imagemask = data_dict["imageMask"]
+
+image  = cv2.imread('brain_mri.jpeg')
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-image = (image * 256).astype(np.uint8)
-imagemask = data_dict["imageMask"]
+print(image.shape)
 
 k = 4 
 q = 4
