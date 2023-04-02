@@ -4,17 +4,18 @@ import numpy as np
 import scipy.signal as sig
 import cv2
 
-def J_fun(memberships,pixels,centres,q,avg_pixels,alpha):
-    return np.sum(np.power(memberships,q).T@np.square(pixels-centers.T) + alpha*np.power(memberships,q).T@np.square(avg_pixels-centers.T))
+def J_fun(u,y,c,q,gamma):
+    d = y-c.T
+    return np.sum(np.power(u,q).T@(np.square(d)*gamma))
 
-def class_means(memberships,pixels,q,avg_pixels,alpha) :
+def class_means(memberships,pixels,q,gamma) :
 
     powered_Membership = memberships ** q
-    c = powered_Membership.T@(pixels+alpha*avg_pixels)
-    c = c.T/((1+alpha)*np.sum(powered_Membership,axis = 0))
+    c = powered_Membership.T@(pixels*gamma)
+    c = c.T/np.sum(powered_Membership,axis = 0)
     return c.T
 
-def update_memberships(pixels, centers, segments, q,avg_pixels,alpha):
+def update_memberships(pixels, centers, segments, q):
     """ Return the new memberships assuming the centers
 
     Args:
@@ -30,7 +31,6 @@ def update_memberships(pixels, centers, segments, q,avg_pixels,alpha):
     distance = np.zeros((M, segments))
     for i in range(segments):
         distance[:, i] = (pixels**2  - 2 * centers[i] * pixels + centers[i] ** 2).flatten()
-        distance[:, i] += alpha*(avg_pixels**2  - 2 * centers[i] * avg_pixels + centers[i] ** 2).flatten()
 
     power = 1 / (q - 1)
     reverse_d = ( 1 / distance ) ** (power) 
@@ -76,8 +76,11 @@ for i in range(image.shape[0]):
 
 k = 4 
 q = 4
+alpha = 0.2
 
-pixels = np.float32(image.reshape((-1,1)))
+zeta = (image + alpha*avg_img)/(1+alpha)
+pixels = np.float32(zeta.reshape((-1,1)))
+values,inverse,counts = np.unique(pixels,return_inverse=True,return_counts=True)
 avg_pixels = np.float32(avg_img.reshape((-1,1)))
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
 retval, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
@@ -88,28 +91,27 @@ savedCenters = np.copy(centers)
 # for i in range(pixels.shape[0]):
 #     uInit[i,labels[i]] = 1
 
-uInit = np.random.rand(pixels.shape[0],centers.shape[0])
+uInit = np.random.rand(values.shape[0],centers.shape[0])
 uInit = uInit/uInit.sum(axis=1)[:,None]
 
-maxIters = 100 
+maxIters = 1000 
 u = uInit
 J = 0
-alpha = 0.2
 
 
 for i in range(maxIters):
-    centers = class_means(u,pixels,q,avg_pixels,alpha)
-    u = update_memberships(pixels,centers,k,q,avg_pixels,alpha)
-    J = J_fun(u,pixels,centers,q,avg_pixels,alpha)
-    # print(i,J)
+    centers = class_means(u,values,q,counts)
+    u = update_memberships(values,centers,k,q)
+    J = J_fun(u,values.reshape((-1,1)),centers.reshape((-1,1)),q,counts.reshape((-1,1)))
 
 print(u.shape)
 labels = np.argmax(u,axis = 1)
 print(labels.shape)
 centers = np.uint8(centers)
 segmented_data = centers[labels.flatten()]
+segmented_data = segmented_data[inverse]
 segmented_image = segmented_data.reshape((image.shape))
-
+print(segmented_image.shape)
 savedCenters = np.uint8(savedCenters)
 kmeans_segmented_data = savedCenters[savedLabels.flatten()]
 kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
