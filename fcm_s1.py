@@ -91,17 +91,18 @@ savedCenters = np.copy(centers)
 uInit = np.random.rand(pixels.shape[0],centers.shape[0])
 uInit = uInit/uInit.sum(axis=1)[:,None]
 
-maxIters = 100 
+maxIters = 1000
 u = uInit
 J = 0
 alpha = 0.2
 
-
+J = J_fun(u,pixels,centers,q,avg_pixels,alpha)
+print(J)
 for i in range(maxIters):
     centers = class_means(u,pixels,q,avg_pixels,alpha)
     u = update_memberships(pixels,centers,k,q,avg_pixels,alpha)
-    J = J_fun(u,pixels,centers,q,avg_pixels,alpha)
-    # print(i,J)
+J = J_fun(u,pixels,centers,q,avg_pixels,alpha)   
+print(J)
 
 print(u.shape)
 labels = np.argmax(u,axis = 1)

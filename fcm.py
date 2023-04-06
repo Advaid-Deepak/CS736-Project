@@ -71,10 +71,12 @@ u = uInit
 J = 0
 
 for i in range(maxIters):
+    print(pixels.shape)
+    print(centers.shape)
     u = update_memberships(pixels,centers,k,q)
     centers = class_means(u,pixels,q)
     J = J_fun(u,pixels,centers,q)
-    # print(i,J)
+    print(i,J)
 
 print(u.shape)
 labels = np.argmax(u,axis = 1)
