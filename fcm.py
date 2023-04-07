@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 def J_fun(u,y,c,q):
-    return np.sum(np.power(u,q).T@np.square(y-c.T))
+    return np.sum(np.power(u,q)*np.square(y-c.T))
 
 def class_means(memberships,pixels,q) :
 

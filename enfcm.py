@@ -6,7 +6,8 @@ import cv2
 
 def J_fun(u,y,c,q,gamma):
     d = y-c.T
-    return np.sum(np.power(u,q).T@(np.square(d)*gamma))
+    ret = np.sum(np.power(u,q)*(np.square(d)*gamma))
+    return ret
 
 def class_means(memberships,pixels,q,gamma) :
     pixels = pixels.reshape((-1,1))
@@ -127,4 +128,4 @@ for i in range(maxIters):
 
     
     # t = input()
-    #print(i,J)
+    print(i,J)

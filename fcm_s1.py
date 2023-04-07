@@ -5,7 +5,7 @@ import scipy.signal as sig
 import cv2
 
 def J_fun(memberships,pixels,centres,q,avg_pixels,alpha):
-    return np.sum(np.power(memberships,q).T@np.square(pixels-centers.T) + alpha*np.power(memberships,q).T@np.square(avg_pixels-centers.T))
+    return np.sum(np.power(memberships,q)*np.square(pixels-centers.T) + alpha*np.power(memberships,q)*np.square(avg_pixels-centers.T))
 
 def class_means(memberships,pixels,q,avg_pixels,alpha) :
 
@@ -96,13 +96,11 @@ u = uInit
 J = 0
 alpha = 0.2
 
-J = J_fun(u,pixels,centers,q,avg_pixels,alpha)
-print(J)
 for i in range(maxIters):
     centers = class_means(u,pixels,q,avg_pixels,alpha)
     u = update_memberships(pixels,centers,k,q,avg_pixels,alpha)
-J = J_fun(u,pixels,centers,q,avg_pixels,alpha)   
-print(J)
+    J = J_fun(u,pixels,centers,q,avg_pixels,alpha)   
+    print(i,J)
 
 print(u.shape)
 labels = np.argmax(u,axis = 1)
