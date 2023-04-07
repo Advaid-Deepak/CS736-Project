@@ -5,6 +5,14 @@ from class_means import class_means
 from cost import J_fun
 import cv2
 
+def class_means(memberships,pixels,q) :
+
+    powered_Membership = memberships ** q
+    c = powered_Membership.T@pixels
+    c = c.T/np.sum(powered_Membership,axis = 0)
+    return c.T
+
+
 def update_memberships(pixels, centers, segments, q):
     """ Return the new memberships assuming the centers
 
@@ -33,6 +41,9 @@ def update_memberships(pixels, centers, segments, q):
      
     return memberships
 
+
+
+
 data_dict = mat73.loadmat('assignmentSegmentBrain.mat')
 
 image = data_dict["imageData"]
@@ -42,7 +53,7 @@ image = (image * 256).astype(np.uint8)
 imagemask = data_dict["imageMask"]
 
 k = 4 
-q = 4
+q = 1.6
 
 pixels = np.float32(image.reshape((-1,1)))
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
