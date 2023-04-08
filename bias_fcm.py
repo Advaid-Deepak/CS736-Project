@@ -4,6 +4,30 @@ import numpy as np
 from scipy.signal import convolve2d
 import cv2
 
+def J_fun(n, m, memberships,pixels,neighbourhood, bias, q, segments,centers):
+    distance = np.zeros(memberships.shape)
+    b = bias.reshape((n, m))
+
+    t1 = convolve2d(b, neighbourhood, "same")
+    t1 = t1.reshape((-1, 1))
+    t2 = convolve2d(b ** 2, neighbourhood, "same")
+    t2 = t1.reshape((-1, 1))
+    t3 = np.zeros(pixels.shape)
+
+    w = sum(sum(neighbourhood))
+
+    for i in range(segments):
+        distance[:, i] = ((pixels**2) * w  - 2 * (centers[i] * pixels)*t1  + (centers[i] ** 2)*t2 ).flatten()
+
+    for i in range(segments):
+        t3 = t3 + ((memberships[:,i]**q)*distance[:, i]).reshape((-1, 1))
+
+    t3 = t3.reshape((n, m))
+
+    J = sum(sum(convolve2d(t3, neighbourhood, "same")))
+
+    return J
+
 
 
 def class_means(n, m, memberships,pixels,neighbourhood, bias, q, segments) :
@@ -42,10 +66,13 @@ def update_bias(n, m, neighbourhood, pixels, memberships, centers, segments, q):
 
     num = convolve2d(image*(numer.reshape((n,m))), neighbourhood, "same").reshape(pixels.shape)
     den = convolve2d(denom.reshape((n, m)), neighbourhood, "same").reshape(pixels.shape)
-    den[den <= 0] = 0.0000001
+    
+    bias = num/den
+    
+    bias[np.isnan(bias)] = 0
+    bias[np.isinf(bias)] = 0
 
-
-    return num / den
+    return bias
     
 
 
@@ -64,8 +91,8 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
     M = pixels.size
     image = pixels.reshape((n, m))
 
-    t1 = convolve2d(bias, neighbourhood, "same").reshape(pixels.shape)
-    t2 = convolve2d(bias ** 2, neighbourhood, "same").reshape(pixels.shape)
+    t1 = convolve2d(bias.reshape(n, m), neighbourhood, "same").reshape(pixels.shape)
+    t2 = convolve2d(bias.reshape(n, m) ** 2, neighbourhood, "same").reshape(pixels.shape)
 
     w = sum(sum(neighbourhood))
 
@@ -73,10 +100,10 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
     for i in range(segments):
         distance[:, i] = ((pixels**2) * w  - 2 * (centers[i] * pixels)*t1  + (centers[i] ** 2)*t2 ).flatten()
 
-    distance[distance <= 0] = 0.00001
+    distance[distance < 0] = 0
     p = 1 / (q - 1)
     reverse_d = ( 1 / distance ) ** (p) 
-    sumD = np.sum(reverse_d, axis = 1).reshape((-1,1))
+    sumD = np.nansum(reverse_d, axis = 1).reshape((-1,1))
 
     memberships = np.zeros((M, segments))
 
@@ -85,7 +112,8 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
         temp = temp / sumD
         temp[imageMask == 0] = 0
         memberships[:, i] = temp.reshape((-1))
-     
+    memberships[np.isnan(memberships)] = 0
+    memberships[np.isinf(memberships)] = 0
     return memberships
 
 
@@ -129,7 +157,7 @@ for i in range(maxIters):
     centers = class_means(image_rows, image_cols, u,pixels,neighbourhood, bias, q, k)
     bias = update_bias(image_rows, image_cols, neighbourhood, pixels, u, centers, k, q)
     bias[imagemask == 0] = 0
-    J = J_fun(u,pixels,centers,q)
+    J = J_fun(image_rows, image_cols, u,pixels,neighbourhood, bias, q, k,centers)
     print(i,J)
     
     labels = np.argmax(u,axis = 1)
