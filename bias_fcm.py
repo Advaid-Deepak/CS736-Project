@@ -1,10 +1,10 @@
 import mat73
 from matplotlib import pyplot as plt
 import numpy as np
-from class_means import class_means
 from scipy.signal import convolve2d
-from cost import J_fun
 import cv2
+
+
 
 def class_means(n, m, memberships,pixels,neighbourhood, bias, q, segments) :
 
@@ -64,10 +64,8 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
     M = pixels.size
     image = pixels.reshape((n, m))
 
-    t1 = convolve2d(image, neighbourhood, "same")
-    t1 = t1.reshape((-1, 1))
-    t2 = convolve2d(image ** 2, neighbourhood, "same")
-    t2 = t1.reshape((-1, 1))
+    t1 = convolve2d(bias, neighbourhood, "same").reshape(pixels.shape)
+    t2 = convolve2d(bias ** 2, neighbourhood, "same").reshape(pixels.shape)
 
     w = sum(sum(neighbourhood))
 
