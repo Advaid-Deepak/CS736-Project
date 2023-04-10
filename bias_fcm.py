@@ -131,7 +131,7 @@ data_dict = mat73.loadmat('assignmentSegmentBrain.mat')
 image = data_dict["imageData"]
 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-image = (image * 256).astype(np.uint8)
+# image = (image * 256).astype(np.uint8)
 image_rows, image_cols = image.shape
 imagemask = data_dict["imageMask"]
 image = imagemask * image
@@ -154,7 +154,6 @@ for i in range(pixels.shape[0]):
 
 bInit = np.ones(pixels.shape) * imagemask
 neighbourhood = gauss(10)
-print(neighbourhood)
 
 maxIters = 20 
 u = uInit
@@ -168,26 +167,33 @@ for i in range(maxIters):
     J = J_fun(image_rows, image_cols, u,pixels,neighbourhood, bias, q, k,centers)
     print(i,J)
     
+centers = (centers * 255).astype(np.uint8)
 labels = np.argmax(u,axis = 1)
 intcenters = np.uint8(centers)
 segmented_data = intcenters[labels.flatten()]
+segmented_data = segmented_data * imagemask
 segmented_image = segmented_data.reshape((image.shape))
 
 retval, labels, centers = cv2.kmeans(pixels, k+1, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+centers = (centers * 255).astype(np.uint8)
 centers = np.uint8(centers)
 kmeans_segmented_data = centers[labels.flatten()]
+kmeans_segmented_data = kmeans_segmented_data * imagemask
 kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
+
 
 biasRemoved = np.zeros(pixels.shape)
 for j in range(k):
     biasRemoved = biasRemoved + u[:, j].reshape((-1,1)) * centers[j]
 biasRemoved = biasRemoved * imagemask
+biasRemoved = (biasRemoved * 255).astype(np.uint8)
+
 
 
 fig, axs = plt.subplots(3, 2 )
 axs[0][0].imshow(image,cmap='gray')
-axs[0][1].imshow(segmented_image)
-axs[1][0].imshow(kmeans_segmented_data)
+axs[0][1].imshow(segmented_image, cmap = 'gray')
+axs[1][0].imshow(kmeans_segmented_data, cmap = 'gray')
 axs[1][1].imshow(bias.reshape(image.shape), cmap = 'gray')
 axs[2][0].imshow(biasRemoved.reshape(image.shape), cmap = 'gray')
 axs[2][1].imshow((pixels - biasRemoved*bias).reshape(image.shape), cmap='gray')
