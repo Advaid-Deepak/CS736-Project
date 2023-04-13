@@ -84,29 +84,33 @@ def c_means(image, imagemask, k, q = 1.6):
     cost = []
 
     for i in range(maxIters):
-        print(pixels.shape)
-        print(centers.shape)
         u = update_memberships(image_rows, image_cols, pixels,u, centers,k,q)
         centers = class_means(u,pixels,q)
         J = J_fun(u,pixels,centers,q)
         cost.append(J)
-        # print(i,J)
+        print(f"Iteration {i}: {J}")
 
-    print(u.shape)
     labels = np.argmax(u,axis = 1)
-    print(labels.shape)
+    
+    if np.all(centers >= 0) and np.all(centers <= 1):
+        centers = centers * 255
     centers = np.uint8(centers)
     segmented_data = centers[labels.flatten()]
     segmented_image = segmented_data.reshape((image.shape))
 
+    if np.all(savedCenters >= 0) and np.all(savedCenters <= 1):
+        savedCenters = savedCenters * 255
     savedCenters = np.uint8(savedCenters)
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
 
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
+    axs[0].set_title("original")
     axs[1].imshow(segmented_image,cmap='gray')
+    axs[0].set_title("c_means")
     axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
+    axs[0].set_title("k_means")
     plt.show()
 
     return segmented_image, cost

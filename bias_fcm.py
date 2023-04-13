@@ -1,3 +1,4 @@
+## WRONG 
 import mat73
 from matplotlib import pyplot as plt
 import numpy as np
@@ -111,12 +112,6 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
     memberships = np.zeros((M, segments))
 
     memberships = reverse_d / sumD
-
-    # for i in range(segments):
-    #     temp = reverse_d[:, i].reshape((-1, 1))
-    #     temp = temp / sumD
-    #     temp[imageMask == 0] = 0
-    #     memberships[:, i] = temp.reshape((-1))
     memberships[np.isnan(memberships)] = 0
     memberships[np.isinf(memberships)] = 0
 
@@ -158,15 +153,19 @@ def c_means(image, imagemask, k, q = 1.6):
         cost.append(J)
         print(i,J)
         
-    centers = (centers * 255).astype(np.uint8)
+    
     labels = np.argmax(u,axis = 1)
+
+    if np.all(centers >= 0) and np.all(centers <= 1):
+        centers = centers * 255
     intcenters = np.uint8(centers)
     segmented_data = intcenters[labels.flatten()]
     segmented_data = segmented_data * imagemask
     segmented_image = segmented_data.reshape((image.shape))
 
     retval, labels, centers = cv2.kmeans(pixels, k+1, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
-    centers = (centers * 255).astype(np.uint8)
+    if np.all(centers >= 0) and np.all(centers <= 1):
+        centers = centers * 255
     centers = np.uint8(centers)
     kmeans_segmented_data = centers[labels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data * imagemask
@@ -183,11 +182,17 @@ def c_means(image, imagemask, k, q = 1.6):
 
     fig, axs = plt.subplots(3, 2 )
     axs[0][0].imshow(image,cmap='gray')
+    axs[0][0].set_title("original")
     axs[0][1].imshow(segmented_image, cmap = 'gray')
+    axs[0][1].set_title("c_means")
     axs[1][0].imshow(kmeans_segmented_data, cmap = 'gray')
+    axs[1][0].set_title("k_means")
     axs[1][1].imshow(bias.reshape(image.shape), cmap = 'gray')
+    axs[1][1].set_title("bias")
     axs[2][0].imshow(biasRemoved.reshape(image.shape), cmap = 'gray')
+    axs[2][0].set_title("bias removed original ")
     axs[2][1].imshow((pixels - biasRemoved*bias).reshape(image.shape), cmap='gray')
+    axs[2][1].set_title("residual Image")
 
 
     plt.show()

@@ -33,6 +33,7 @@ def update_memberships(pixels, centers, segments, q):
     for i in range(segments):
         distance[:, i] = (pixels**2  - 2 * centers[i] * pixels + centers[i] ** 2).flatten()
 
+    distance = np.abs(distance)
     power = 1 / (q - 1)
     reverse_d = ( 1 / distance ) ** (power) 
     sumD = np.sum(reverse_d, axis = 1)
@@ -45,8 +46,6 @@ def update_memberships(pixels, centers, segments, q):
     return memberships
 
 def c_means(image, imagemask,k, q = 1.6):
-    # image  = cv2.imread('brain_mri.jpeg')
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     avg_img = np.zeros(image.shape)
 
     for i in range(image.shape[0]):
@@ -70,11 +69,6 @@ def c_means(image, imagemask,k, q = 1.6):
 
     alpha = 0.2
 
-    # fig, axs = plt.subplots(1, 2 )
-    # axs[0].imshow(image,cmap='gray')
-    # axs[1].imshow(avg_img,cmap='gray')
-    # plt.show()
-
     zeta = (image + alpha*avg_img)/(1+alpha)
     pixels = np.float32(zeta.reshape((-1,1)))
     values,inverse,counts = np.unique(pixels,return_inverse=True,return_counts=True)
@@ -94,34 +88,40 @@ def c_means(image, imagemask,k, q = 1.6):
     u = uInit
     J = 0
     counts = counts.reshape((-1,1))
+    cost = []
     for i in range(maxIters):
         centers = class_means(u,values,q,counts)
         u = update_memberships(values,centers,k,q)
         J = J_fun(u,values.reshape((-1,1)),centers.reshape((-1,1)),q,counts.reshape((-1,1)))
         cost.append(J)
+        print(f"iteration {i}: { J }")
 
 
-        labels = np.argmax(u,axis = 1)
-        centers = np.uint8(centers)
+    labels = np.argmax(u,axis = 1)
 
-        segmented_data = centers[labels.flatten()]
-        segmented_data = segmented_data[inverse]
-        segmented_image = segmented_data.reshape((image.shape))
-        savedCenters = np.uint8(savedCenters)
-        kmeans_segmented_data = savedCenters[savedLabels.flatten()]
-        kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
+    if np.all(centers >= 0) and np.all(centers <= 1):
+        centers = centers * 255
+    centers = np.uint8(centers)
+    segmented_data = centers[labels.flatten()]
+    segmented_data = segmented_data[inverse]
+    segmented_image = segmented_data.reshape((image.shape))
 
-        fig, axs = plt.subplots(1, 3 )
-        axs[0].imshow(image,cmap='gray')
-        axs[1].imshow(segmented_image,cmap='gray')
-        axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
-        plt.show()
+    if np.all(savedCenters >= 0) and np.all(savedCenters <= 1):
+        savedCenters = savedCenters * 255
+    savedCenters = np.uint8(savedCenters)
+    kmeans_segmented_data = savedCenters[savedLabels.flatten()]
+    kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
 
-        
-        # t = input()
-        print(i,J)
+    fig, axs = plt.subplots(1, 3 )
+    axs[0].imshow(image,cmap='gray')
+    axs[0].set_title("original")
+    axs[1].imshow(segmented_image,cmap='gray')
+    axs[1].set_title("enfcm")
+    axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
+    axs[2].set_title("kmeans")
+    plt.show()
 
-        return segmented_image, cost
+    return segmented_image, cost
 
 
 if __name__ == "__main__":

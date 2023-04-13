@@ -51,7 +51,6 @@ def update_memberships(pixels, centers, segments, q):
 
 
 def c_means(image, imagemask, k, q = 1.6):
-    
 
     pixels = np.float32(image.reshape((-1,1)))
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
@@ -63,36 +62,39 @@ def c_means(image, imagemask, k, q = 1.6):
     for i in range(pixels.shape[0]):
         uInit[i,labels[i]] = 1
 
-    maxIters = 100 
+    maxIters = 20 
     u = uInit
     J = 0
 
     cost = []
 
     for i in range(maxIters):
-        print(pixels.shape)
-        print(centers.shape)
         u = update_memberships(pixels,centers,k,q)
         centers = class_means(u,pixels,q)
         J = J_fun(u,pixels,centers,q)
         cost.append(J)
-        print(i,J)
+        print(f"iteration {i}: { J }")
 
-    print(u.shape)
     labels = np.argmax(u,axis = 1)
-    print(labels.shape)
+    if np.all(centers >= 0) and np.all(centers <= 1):
+        centers = centers * 255
     centers = np.uint8(centers)
     segmented_data = centers[labels.flatten()]
     segmented_image = segmented_data.reshape((image.shape))
 
+    if np.all(savedCenters >= 0) and np.all(savedCenters <= 1):
+        savedCenters = savedCenters * 255
     savedCenters = np.uint8(savedCenters)
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
 
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
+    axs[0].set_title("original Image")
     axs[1].imshow(segmented_image,cmap='gray')
+    axs[1].set_title("c_means")
     axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
+    axs[2].set_title("kmeans")
     plt.show()
 
     return segmented_image, cost

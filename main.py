@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser.add_argument("--method", choices=["fcm","fgfcm", "enfcm", "bias_fcm", "fcm_local", "fcm_s1"])
     parser.add_argument("--image", type=validate)
     parser.add_argument("--interactive", action="store_true")
-    parser.add_argument("--q", default=1.6)
+    parser.add_argument("--q", default=1.6, type=float)
     parser.add_argument("--save", action="store_true")
 
     args = parser.parse_args()
@@ -47,9 +47,8 @@ if __name__ == '__main__':
     elif extension in [".mat"]:
         data_dict = mat73.loadmat(image_file)
         image = data_dict["imageData"]
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # image = (image * 256).astype(np.uint8)
+        image = (image * 255).astype(np.uint8)
+        image = image/255
         imagemask = data_dict["imageMask"]
 
     else:

@@ -4,7 +4,7 @@ import numpy as np
 import scipy.signal as sig
 import cv2
 
-def J_fun(memberships,pixels,centres,q,avg_pixels,alpha):
+def J_fun(memberships,pixels,centers,q,avg_pixels,alpha):
     return np.sum(np.power(memberships,q)*np.square(pixels-centers.T) + alpha*np.power(memberships,q)*np.square(avg_pixels-centers.T))
 
 def class_means(memberships,pixels,q,avg_pixels,alpha) :
@@ -80,7 +80,7 @@ def c_means(image, imagemask, k, q = 1.6):
     uInit = np.random.rand(pixels.shape[0],centers.shape[0])
     uInit = uInit/uInit.sum(axis=1)[:,None]
 
-    maxIters = 1000
+    maxIters = 20
     u = uInit
     J = 0
     cost = []
@@ -90,24 +90,29 @@ def c_means(image, imagemask, k, q = 1.6):
         centers = class_means(u,pixels,q,avg_pixels,alpha)
         u = update_memberships(pixels,centers,k,q,avg_pixels,alpha)
         J = J_fun(u,pixels,centers,q,avg_pixels,alpha)   
-        cost.append[J]
-        print(i,J)
+        cost.append(J)
+        print(f"iterations {i}: {J}")
 
-    print(u.shape)
     labels = np.argmax(u,axis = 1)
-    print(labels.shape)
+    if np.all(centers >= 0) and np.all(centers <= 1):
+        centers = centers * 255
     centers = np.uint8(centers)
     segmented_data = centers[labels.flatten()]
     segmented_image = segmented_data.reshape((image.shape))
 
+    if np.all(savedCenters >= 0) and np.all(savedCenters <= 1):
+        savedCenters = savedCenters * 255
     savedCenters = np.uint8(savedCenters)
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
 
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
+    axs[0].set_title("original")
     axs[1].imshow(segmented_image,cmap='gray')
+    axs[1].set_title("c_means")
     axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
+    axs[2].set_title("k_means")
     plt.show()
 
     return segmented_image, cost
