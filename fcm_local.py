@@ -4,8 +4,31 @@ from matplotlib import pyplot as plt
 import numpy as np
 import cv2
 
-def J_fun(u,y,c,q):
-    return np.sum(np.power(u,q)*np.square(y-c.T))
+def J_fun(image_rows, image_cols, pixels, memberships,  centers, segments, q):
+    M = pixels.size
+    image = pixels.reshape((image_rows, image_cols))
+    fuzzy_factor = np.zeros((M, segments))
+
+    distance = np.zeros((M, segments))
+    for k in range(segments):
+        distance[:, k] = (pixels**2  - 2 * centers[k] * pixels + centers[k] ** 2).flatten()
+        distanceImage = distance[:, k].reshape((image_rows, image_cols))
+        membershipImage = memberships[:, k].reshape((image_rows, image_cols))
+        fuzzy_factor_k = np.zeros((image_rows, image_cols))
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
+                sum = 0
+                if i > 0 :
+                    sum += 1 / (dis(image[i][j], image[i-1][j]) + 1) * ((1 - membershipImage[i-1][j]) ** q ) * (distanceImage[i-1][j])
+                if j > 0 :
+                    sum += 1 / (dis(image[i][j], image[i][j-1]) + 1) * ((1 - membershipImage[i][j-1]) ** q ) * (distanceImage[i][j-1])
+                if i < image.shape[0]-1:
+                    sum += 1 / (dis(image[i][j], image[i+1][j]) + 1) * ((1 - membershipImage[i+1][j]) ** q ) * (distanceImage[i+1][j])
+                if j < image.shape[1]-1:
+                    sum += 1 / (dis(image[i][j], image[i][j+1]) + 1) * ((1 - membershipImage[i][j+1]) ** q ) * (distanceImage[i][j+1])
+                fuzzy_factor_k[i][j] = sum
+        fuzzy_factor[:, k] = fuzzy_factor_k.reshape((-1))
+    return np.sum(fuzzy_factor + distance*memberships)
 
 
 def class_means(memberships,pixels,q) :
@@ -86,7 +109,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
     for i in range(iter):
         u = update_memberships(image_rows, image_cols, pixels,u, centers,k,q)
         centers = class_means(u,pixels,q)
-        J = J_fun(u,pixels,centers,q)
+        J = J_fun(image_rows, image_cols, pixels,u, centers,k,q)
         cost.append(J)
         print(f"Iteration {i}: {J}")
 
@@ -155,7 +178,7 @@ if __name__ == "__main__":
         print(centers.shape)
         u = update_memberships(image_rows, image_cols, pixels,u, centers,k,q)
         centers = class_means(u,pixels,q)
-        J = J_fun(u,pixels,centers,q)
+        J = J_fun(image_rows, image_cols, pixels,u, centers,k,q)
         # print(i,J)
 
     print(u.shape)
