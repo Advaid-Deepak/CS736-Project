@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # parser.add_argument("--interactive", action="store_true")
     parser.add_argument("--q", default=1.6, type=float, help="fuzziness factor")
     parser.add_argument("--save", action="store_true", help="files will be saved in results folder with name {file_name}_{method}.png")
-    parser.add_arguments("--iter", default = 20, type = int, help="Number of iterations")
+    parser.add_argument("--iter", default = 20, type = int, help="Number of iterations")
 
     args = parser.parse_args()
     segments = args.k
@@ -86,7 +86,10 @@ if __name__ == '__main__':
     plt.show()
 
     plt.plot(cost)
-    plt.title("cost")
+    plt.title("cost vs number of iterations")
+    plt.xlabel("number of iterations")
+    plt.ylabel("cost value")
+    plt.grid()
     if save:
         plt.savefig(f"./results/{os.path.splitext(os.path.basename(image_file))[0]}_{method}_cost.png")
     plt.show()

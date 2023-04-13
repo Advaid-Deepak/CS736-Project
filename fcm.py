@@ -30,6 +30,8 @@ def update_memberships(pixels, centers, segments, q):
     for i in range(segments):
         distance[:, i] = (pixels**2  - 2 * centers[i] * pixels + centers[i] ** 2).flatten()
 
+    distance[distance <= 0] = 1e-10
+
     power = 1 / (q - 1)
     reverse_d = ( 1 / distance ) ** (power) 
     sumD = np.sum(reverse_d, axis = 1)
