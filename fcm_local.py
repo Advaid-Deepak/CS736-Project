@@ -77,6 +77,8 @@ def update_memberships(image_rows, image_cols, pixels, memberships,  centers, se
         fuzzy_factor[:, k] = fuzzy_factor_k.reshape((-1))
 
 
+    distance[distance <= 0] = 1e-10
+
     power = 1 / (q - 1)
     reverse_d = ( 1 / (distance + fuzzy_factor)) ** (power) 
     sumD = np.sum(reverse_d, axis = 1)
@@ -90,6 +92,7 @@ def update_memberships(image_rows, image_cols, pixels, memberships,  centers, se
 
 
 def c_means(image, imagemask, k, q = 1.6, iter = 20):
+    image = image*imagemask
     image_rows, image_cols = image.shape
 
     pixels = np.float32(image.reshape((-1,1)))

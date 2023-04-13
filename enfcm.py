@@ -33,7 +33,7 @@ def update_memberships(pixels, centers, segments, q):
     for i in range(segments):
         distance[:, i] = (pixels**2  - 2 * centers[i] * pixels + centers[i] ** 2).flatten()
 
-    distance = np.abs(distance)
+    distance[distance <= 0] = 1e-10
     power = 1 / (q - 1)
     reverse_d = ( 1 / distance ) ** (power) 
     sumD = np.sum(reverse_d, axis = 1)
@@ -46,6 +46,8 @@ def update_memberships(pixels, centers, segments, q):
     return memberships
 
 def c_means(image, imagemask,k, q = 1.6, iter = 20):
+
+    image = image*imagemask
     avg_img = np.zeros(image.shape)
 
     for i in range(image.shape[0]):

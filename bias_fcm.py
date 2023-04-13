@@ -104,7 +104,7 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
 
     distance = distance * imageMask
 
-    distance[distance < 0] = 0
+    distance[distance <= 0] = 1e-10
     p =  1 / (q - 1)
     reverse_d = ( 1 / distance ) ** (p) 
     sumD = np.nansum(reverse_d, axis = 1).reshape((-1,1))

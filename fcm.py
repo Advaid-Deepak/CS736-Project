@@ -54,6 +54,7 @@ def update_memberships(pixels, centers, segments, q):
 
 def c_means(image, imagemask, k, q = 1.6, iter = 20):
 
+    image = image*imagemask
     pixels = np.float32(image.reshape((-1,1)))
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
     retval, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
