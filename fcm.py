@@ -50,7 +50,7 @@ def update_memberships(pixels, centers, segments, q):
 # imagemask = data_dict["imageMask"]
 
 
-def c_means(image, imagemask, k, q = 1.6):
+def c_means(image, imagemask, k, q = 1.6, iter = 20):
 
     pixels = np.float32(image.reshape((-1,1)))
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
@@ -62,13 +62,12 @@ def c_means(image, imagemask, k, q = 1.6):
     for i in range(pixels.shape[0]):
         uInit[i,labels[i]] = 1
 
-    maxIters = 20 
     u = uInit
     J = 0
 
     cost = []
 
-    for i in range(maxIters):
+    for i in range(iter):
         u = update_memberships(pixels,centers,k,q)
         centers = class_means(u,pixels,q)
         J = J_fun(u,pixels,centers,q)

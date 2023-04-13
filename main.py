@@ -23,12 +23,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
 
-    parser.add_argument("--k", type = int)
-    parser.add_argument("--method", choices=["fcm","fgfcm", "enfcm", "bias_fcm", "fcm_local", "fcm_s1"])
-    parser.add_argument("--image", type=validate)
-    parser.add_argument("--interactive", action="store_true")
-    parser.add_argument("--q", default=1.6, type=float)
-    parser.add_argument("--save", action="store_true")
+    parser.add_argument("--k", type = int, help="number of segments in the image")
+    parser.add_argument("--method", choices=["fcm","fgfcm", "enfcm", "bias_fcm", "fcm_local", "fcm_s1"], help="choose your flavor of fcm")
+    parser.add_argument("--image", type=validate, help="path to the image file")
+    # parser.add_argument("--interactive", action="store_true")
+    parser.add_argument("--q", default=1.6, type=float, help="fuzziness factor")
+    parser.add_argument("--save", action="store_true", help="files will be saved in results folder with name {file_name}_{method}.png")
+    parser.add_arguments("--iter", default = 20, type = int, help="Number of iterations")
 
     args = parser.parse_args()
     segments = args.k
@@ -36,6 +37,13 @@ if __name__ == '__main__':
     image_file = args.image
     q = args.q
     save = args.save
+    iter = args.iter
+
+    if q <= 1:
+        sys.exit("ERROR: q should be greater than 1, 1 is just k_means, will give error")
+
+    if iter <= 0:
+        sys.exit("ERROR: number of iterations should be greater than 0")
 
     extension = os.path.splitext(os.path.basename( image_file ))[1]
     if extension in [".png", ".jpeg", ".jpg"]:
@@ -57,17 +65,17 @@ if __name__ == '__main__':
 
 
     if method == 'fcm':
-        result, cost = fcm.c_means(image, imagemask, segments, q)
+        result, cost = fcm.c_means(image, imagemask, segments, q, iter)
     elif method == "fgfcm":
-        result, cost = fgfcm.c_means(image, imagemask, segments, q)
+        result, cost = fgfcm.c_means(image, imagemask, segments, q, iter)
     elif method == 'enfcm':
-        result, cost = enfcm.c_means(image, imagemask, segments, q)
+        result, cost = enfcm.c_means(image, imagemask, segments, q, iter)
     elif method == 'bias_fcm':
-        result, cost = bias_fcm.c_means(image, imagemask, segments, q)
+        result, cost = bias_fcm.c_means(image, imagemask, segments, q, iter)
     elif method == 'fcm_local':
-        result, cost = fcm_local.c_means(image, imagemask, segments, q)
+        result, cost = fcm_local.c_means(image, imagemask, segments, q, iter)
     elif method == 'fcm_s1':
-        result, cost = fcm_s1.c_means(image, imagemask, segments, q)
+        result, cost = fcm_s1.c_means(image, imagemask, segments, q, iter)
     else:
         sys.exit("ERROR: method not supported")
 

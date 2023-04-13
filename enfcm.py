@@ -45,7 +45,7 @@ def update_memberships(pixels, centers, segments, q):
      
     return memberships
 
-def c_means(image, imagemask,k, q = 1.6):
+def c_means(image, imagemask,k, q = 1.6, iter = 20):
     avg_img = np.zeros(image.shape)
 
     for i in range(image.shape[0]):
@@ -84,12 +84,12 @@ def c_means(image, imagemask,k, q = 1.6):
 
     uInit = np.random.rand(values.shape[0],centers.shape[0])
     uInit = uInit/uInit.sum(axis=1)[:,None]
-    maxIters = 20
     u = uInit
     J = 0
     counts = counts.reshape((-1,1))
     cost = []
-    for i in range(maxIters):
+
+    for i in range(iter):
         centers = class_means(u,values,q,counts)
         u = update_memberships(values,centers,k,q)
         J = J_fun(u,values.reshape((-1,1)),centers.reshape((-1,1)),q,counts.reshape((-1,1)))

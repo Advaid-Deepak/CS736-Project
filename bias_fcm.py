@@ -12,7 +12,7 @@ def J_fun(n, m, memberships,pixels,neighbourhood, bias, q, segments,centers):
     t1 = convolve2d(b, neighbourhood, "same")
     t1 = t1.reshape((-1, 1))
     t2 = convolve2d(b ** 2, neighbourhood, "same")
-    t2 = t1.reshape((-1, 1))
+    t2 = t2.reshape((-1, 1))
     t3 = np.zeros(pixels.shape)
 
     w = sum(sum(neighbourhood))
@@ -119,7 +119,7 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
     return memberships
 
 
-def c_means(image, imagemask, k, q = 1.6):
+def c_means(image, imagemask, k, q = 1.6, iter = 20):
 
     image_rows, image_cols = image.shape
     image = imagemask * image
@@ -137,15 +137,14 @@ def c_means(image, imagemask, k, q = 1.6):
 
 
     bInit = np.ones(pixels.shape) * imagemask
-    neighbourhood = gauss(10)
+    neighbourhood = gauss(20)
 
-    maxIters = 20 
     u = uInit
     J = 0
     cost = []
     bias = bInit
 
-    for i in range(maxIters):
+    for i in range(iter):
         u = update_memberships(image_rows, image_cols, neighbourhood,pixels,centers,bias, k,q, imagemask)
         centers = class_means(image_rows, image_cols, u,pixels,neighbourhood, bias, q, k, imagemask)
         bias = update_bias(image_rows, image_cols, neighbourhood, pixels, u, centers, k, q, imagemask)

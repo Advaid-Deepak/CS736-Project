@@ -1,3 +1,4 @@
+# Change the cost function 
 import mat73
 from matplotlib import pyplot as plt
 import numpy as np
@@ -65,7 +66,7 @@ def update_memberships(image_rows, image_cols, pixels, memberships,  centers, se
     return memberships
 
 
-def c_means(image, imagemask, k, q = 1.6):
+def c_means(image, imagemask, k, q = 1.6, iter = 20):
     image_rows, image_cols = image.shape
 
     pixels = np.float32(image.reshape((-1,1)))
@@ -78,12 +79,11 @@ def c_means(image, imagemask, k, q = 1.6):
     for i in range(pixels.shape[0]):
         uInit[i,labels[i]] = 1
 
-    maxIters = 10 
     u = uInit
     J = 0
     cost = []
 
-    for i in range(maxIters):
+    for i in range(iter):
         u = update_memberships(image_rows, image_cols, pixels,u, centers,k,q)
         centers = class_means(u,pixels,q)
         J = J_fun(u,pixels,centers,q)
