@@ -48,8 +48,8 @@ def update_memberships(pixels, centers, segments, q):
     return memberships
 
 
-def c_means(image, imagemask, k, q = 1.6, iter = 20 ):
-
+def c_means(image, imagemask, k, q = 1.6, iter = 20):
+    np.random.seed(0)
     image = image * imagemask
     avg_img = np.float32(np.zeros(image.shape))
 
@@ -93,6 +93,8 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20 ):
 
      
 
+    alpha = 0.2
+
 
     pixels = np.float32(avg_img.reshape((-1,1)))
     values,inverse,counts = np.unique(pixels,return_inverse=True,return_counts=True)
@@ -102,6 +104,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20 ):
     savedLabels = np.copy(labels)
     savedCenters = np.copy(centers)
 
+    gt = np.copy(labels).flatten()
     uInit = np.random.rand(values.shape[0],centers.shape[0])
     uInit = uInit/uInit.sum(axis=1)[:,None]
     u = uInit
@@ -118,7 +121,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20 ):
 
 
     labels = np.argmax(u,axis = 1)
-
+    seg = np.copy(labels[inverse]).flatten()
 
     
     if np.all(centers >= 0) and np.all(centers <= 1):
@@ -134,7 +137,13 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20 ):
     savedCenters = np.uint8(savedCenters)
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
-
+    dice = np.zeros(k)
+    for i in range(k):
+        dic = 0
+        for j in range(k) :
+            dic = max(dic,np.sum(seg[gt==i]==j)*2.0 / (np.sum(seg[seg==j]==j) + np.sum(gt[gt==i]==i)))
+        dice[i] = dic
+    print("dice_accuracy",np.mean(dice))
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
     axs[0].set_title("original image")

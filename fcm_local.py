@@ -92,6 +92,7 @@ def update_memberships(image_rows, image_cols, pixels, memberships,  centers, se
 
 
 def c_means(image, imagemask, k, q = 1.6, iter = 20):
+    np.random.seed(0)
     image = image*imagemask
     image_rows, image_cols = image.shape
 
@@ -100,7 +101,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
     retval, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
     savedLabels = np.copy(labels)
     savedCenters = np.copy(centers)
-
+    gt = np.copy(labels).flatten()
     uInit = np.zeros((pixels.shape[0],centers.shape[0]))
     for i in range(pixels.shape[0]):
         uInit[i,labels[i]] = 1
@@ -117,7 +118,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
         print(f"Iteration {i}: {J}")
 
     labels = np.argmax(u,axis = 1)
-    
+    seg = np.copy(labels).flatten()
     if np.all(centers >= 0) and np.all(centers <= 1):
         centers = centers * 255
     centers = np.uint8(centers)
@@ -129,7 +130,13 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
     savedCenters = np.uint8(savedCenters)
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
-
+    dice = np.zeros(k)
+    for i in range(k):
+        dic = 0
+        for j in range(k) :
+            dic = max(dic,np.sum(seg[gt==i]==j)*2.0 / (np.sum(seg[seg==j]==j) + np.sum(gt[gt==i]==i)))
+        dice[i] = dic
+    print("dice_accuracy",np.mean(dice))
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
     axs[0].set_title("original")
@@ -167,7 +174,7 @@ if __name__ == "__main__":
     retval, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
     savedLabels = np.copy(labels)
     savedCenters = np.copy(centers)
-
+    gt = np.copy(labels).flatten()
     uInit = np.zeros((pixels.shape[0],centers.shape[0]))
     for i in range(pixels.shape[0]):
         uInit[i,labels[i]] = 1
@@ -186,6 +193,7 @@ if __name__ == "__main__":
 
     print(u.shape)
     labels = np.argmax(u,axis = 1)
+    seg = np.copy(labels).flatten()
     print(labels.shape)
     centers = np.uint8(centers)
     segmented_data = centers[labels.flatten()]
@@ -195,6 +203,10 @@ if __name__ == "__main__":
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
 
+    dice = np.zeros(k)
+    for i in range(k):
+        dice[i] = np.sum(seg[gt==i]==i)*2.0 / (np.sum(seg[seg==i]==i) + np.sum(gt[gt==i]==i))
+    print("dice_accuracy",np.mean(dice))
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
     axs[1].imshow(segmented_image,cmap='gray')

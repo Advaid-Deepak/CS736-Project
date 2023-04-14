@@ -32,7 +32,7 @@ def J_fun(n, m, memberships,pixels,neighbourhood, bias, q, segments,centers):
 
 
 def class_means(n, m, memberships,pixels,neighbourhood, bias, q, segments, imageMask) :
-
+    np.random.seed(0)
     numer = convolve2d(bias.reshape((n, m)), neighbourhood, "same").reshape(pixels.shape)
     denom = convolve2d(bias.reshape((n, m)) ** 2, neighbourhood, "same").reshape(pixels.shape)
 
@@ -120,7 +120,7 @@ def update_memberships(n, m, neighbourhood, pixels, centers, bias, segments, q, 
 
 
 def c_means(image, imagemask, k, q = 1.6, iter = 20):
-
+    np.random.seed(0)
     image_rows, image_cols = image.shape
     image = imagemask * image
     imagemask = imagemask.reshape((-1, 1))
@@ -131,6 +131,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
     savedLabels = np.copy(labels)
     savedCenters = np.copy(centers)
 
+    gt = np.copy(labels).flatten()
     uInit = np.zeros((pixels.shape[0],centers.shape[0]))
     for i in range(pixels.shape[0]):
         uInit[i,labels[i]] = 1
@@ -154,7 +155,7 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
         
     
     labels = np.argmax(u,axis = 1)
-
+    seg = np.copy(labels).flatten()
     if np.all(centers >= 0) and np.all(centers <= 1):
         centers = centers * 255
     intcenters = np.uint8(centers)
@@ -177,7 +178,13 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
     biasRemoved = biasRemoved * imagemask
     biasRemoved = (biasRemoved * 255).astype(np.uint8)
 
-
+    dice = np.zeros(k)
+    for i in range(k):
+        dic = 0
+        for j in range(k) :
+            dic = max(dic,np.sum(seg[gt==i]==j)*2.0 / (np.sum(seg[seg==j]==j) + np.sum(gt[gt==i]==i)))
+        dice[i] = dic
+    print("dice_accuracy",np.mean(dice))
 
     fig, axs = plt.subplots(3, 2 )
     axs[0][0].imshow(image,cmap='gray')
