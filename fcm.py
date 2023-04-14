@@ -53,7 +53,7 @@ def update_memberships(pixels, centers, segments, q):
 
 
 def c_means(image, imagemask, k, q = 1.6, iter = 20):
-
+    np.random.seed(0)
     image = image*imagemask
     pixels = np.float32(image.reshape((-1,1)))
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
@@ -90,7 +90,10 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
     dice = np.zeros(k)
     for i in range(k):
-        dice[i] = np.sum(seg[gt==i]==i)*2.0 / (np.sum(seg[seg==i]==i) + np.sum(gt[gt==i]==i))
+        dic = 0
+        for j in range(k) :
+            dic = max(dic,np.sum(seg[gt==i]==j)*2.0 / (np.sum(seg[seg==j]==j) + np.sum(gt[gt==i]==i)))
+        dice[i] = dic
     print("dice_accuracy",np.mean(dice))
     fig, axs = plt.subplots(1, 3 )
     axs[0].imshow(image,cmap='gray')
