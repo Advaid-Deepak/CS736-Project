@@ -48,7 +48,7 @@ def update_memberships(pixels, centers, segments, q):
     return memberships
 
 
-def c_means(image, imagemask, k, q = 1.6, iter = 20):
+def c_means(image, imagemask, k, q = 1.6, iter = 20 ):
 
     image = image * imagemask
     avg_img = np.float32(np.zeros(image.shape))
@@ -92,8 +92,6 @@ def c_means(image, imagemask, k, q = 1.6, iter = 20):
             avg_img[i,j] /= den
 
      
-
-    alpha = 0.2
 
 
     pixels = np.float32(avg_img.reshape((-1,1)))

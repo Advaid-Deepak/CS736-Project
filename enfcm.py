@@ -45,7 +45,7 @@ def update_memberships(pixels, centers, segments, q):
      
     return memberships
 
-def c_means(image, imagemask,k, q = 1.6, iter = 20):
+def c_means(image, imagemask,k, q = 1.6, iter = 20, alpha=0.2, show_image = True):
 
     image = image*imagemask
     avg_img = np.zeros(image.shape)
@@ -69,7 +69,6 @@ def c_means(image, imagemask,k, q = 1.6, iter = 20):
             avg_img[i,j] = sum/count
      
 
-    alpha = 0.2
 
     zeta = (image + alpha*avg_img)/(1+alpha)
     pixels = np.float32(zeta.reshape((-1,1)))
@@ -114,14 +113,16 @@ def c_means(image, imagemask,k, q = 1.6, iter = 20):
     kmeans_segmented_data = savedCenters[savedLabels.flatten()]
     kmeans_segmented_data = kmeans_segmented_data.reshape((image.shape))
 
-    fig, axs = plt.subplots(1, 3 )
-    axs[0].imshow(image,cmap='gray')
-    axs[0].set_title("original")
-    axs[1].imshow(segmented_image,cmap='gray')
-    axs[1].set_title("enfcm")
-    axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
-    axs[2].set_title("kmeans")
-    plt.show()
+
+    if show_image:
+        fig, axs = plt.subplots(1, 3 )
+        axs[0].imshow(image,cmap='gray')
+        axs[0].set_title("original")
+        axs[1].imshow(segmented_image,cmap='gray')
+        axs[1].set_title("enfcm")
+        axs[2].imshow(kmeans_segmented_data, cmap = 'gray')
+        axs[2].set_title("kmeans")
+        plt.show()
 
     return segmented_image, cost
 
